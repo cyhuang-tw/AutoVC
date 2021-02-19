@@ -1,0 +1,39 @@
+ContentEncoder:
+  dim_input: 80
+  dim_hidden: 512
+  dim_neck: 16
+  dim_emb: 256
+  lstm_stride: 16
+  kernel_size: 5
+  stride: 1
+  dilation: 1
+  n_conv_layers: 3
+  n_lstm_layers: 2
+SpeakerEncoder:
+  num_layers: 3
+  dim_input: 80
+  dim_cell: 768
+  dim_emb: 256
+  path: "speaker_encoder.pt"
+Decoder:
+  dim_input: 512
+  dim_hidden: 1024
+  dim_out: 80
+  kernel_size: 5
+  stride: 1
+  dilation: 1
+  n_conv_layers: 3
+  n_lstm_layers: 2
+PreNet:
+  dim_neck: 16
+  dim_emb: 256
+  dim_out: 512
+  n_layers: 1
+PostNet:
+  dim_input: 80
+  dim_hidden: 512
+  dim_out: 80
+  kernel_size: 5
+  stride: 1
+  dilation: 1
+  n_layers: 5
