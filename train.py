@@ -1,22 +1,22 @@
 import argparse
-import os
+from pathlib import Path
 
 import numpy as np
 import torch
 import torch.nn as nn
 import yaml
-from tensorboardX import SummaryWriter
 from torch.utils.data.dataloader import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import trange
 
-from data.dataset import SpeakerDataset
-from modules.models import AutoVC
+from data import SpeakerDataset
+from modules import AutoVC
 
 
 def main(
-    config: str,
-    data_path: str,
-    save_path: str,
+    config_path: Path,
+    data_dir: Path,
+    save_dir: Path,
     n_steps: int,
     save_steps: int,
     log_steps: int,
@@ -25,13 +25,13 @@ def main(
 ):
     torch.backends.cudnn.benchmark = True
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    os.makedirs(save_path, exist_ok=True)
-    config = yaml.load(open(config, "r"), Loader=yaml.FullLoader)
-    writer = SummaryWriter(save_path)
+    save_dir.mkdir(exist_ok=True)
+    config = yaml.load(config_path.open(mode="r"), Loader=yaml.FullLoader)
+    writer = SummaryWriter(save_dir)
 
     model = AutoVC(config)
     model = torch.jit.script(model).to(device)
-    train_set = SpeakerDataset(data_path, seg_len=seg_len)
+    train_set = SpeakerDataset(data_dir, seg_len=seg_len)
     data_loader = DataLoader(
         train_set,
         batch_size=batch_size,
@@ -73,11 +73,8 @@ def main(
         optimizer.step()
 
         if (step + 1) % save_steps == 0:
-            model.save(os.path.join(save_path, f"model-{step + 1}.pt"))
-            torch.save(
-                optimizer.state_dict(),
-                os.path.join(save_path, f"optimizer-{step + 1}.pt"),
-            )
+            model.save(save_dir / f"model-{step + 1}.pt")
+            torch.save(optimizer.state_dict(), save_dir / f"optimizer-{step + 1}.pt")
 
         if (step + 1) % log_steps == 0:
             writer.add_scalar("loss/org_rec", org_loss.item(), step + 1)
@@ -94,9 +91,9 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", type=str)
-    parser.add_argument("data_path", type=str)
-    parser.add_argument("save_path", type=str)
+    parser.add_argument("config_path", type=Path)
+    parser.add_argument("data_dir", type=Path)
+    parser.add_argument("save_dir", type=Path)
     parser.add_argument("--n_steps", type=int, default=int(1e7))
     parser.add_argument("--save_steps", type=int, default=10000)
     parser.add_argument("--log_steps", type=int, default=250)

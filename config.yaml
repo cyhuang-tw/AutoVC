@@ -14,7 +14,7 @@ SpeakerEncoder:
   dim_input: 80
   dim_cell: 768
   dim_emb: 256
-  path: "speaker_encoder.pt"
+  path: "dvector.pt"
 Decoder:
   dim_input: 512
   dim_hidden: 1024
